@@ -1,3 +1,4 @@
+import 'package:carousel/core/repositories/datarepository.dart';
 import 'package:carousel/core/services/http_services.dart';
 
 import '../core/logger.dart';
@@ -5,7 +6,7 @@ import '../core/services/navigator_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
 
-GetIt locator = GetIt.instance;
+GetIt getIt = GetIt.instance;
 
 class LocatorInjector {
   // ignore: prefer_final_fields
@@ -13,11 +14,14 @@ class LocatorInjector {
 
   static Future<void> setupLocator() async {
     _log.d('Initializing Services');
-    locator.registerLazySingleton(
+    getIt.registerLazySingleton(
       () => NavigatorService(),
     );
-    locator.registerLazySingleton(
+    getIt.registerLazySingleton(
       () => HttpService(),
+    );
+    getIt.registerLazySingleton(
+      () => DataRepository(),
     );
   }
 }

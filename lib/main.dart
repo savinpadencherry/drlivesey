@@ -14,7 +14,7 @@ class MainApplication extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      navigatorKey: locator<NavigatorService>().navigatorKey,
+      navigatorKey: getIt<NavigatorService>().navigatorKey,
       home: const HomeView(),
     );
   }

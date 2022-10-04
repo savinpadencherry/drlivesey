@@ -17,6 +17,7 @@ dependencies:
     responsive_builder: ^0.4.3
     carousel_slider: ^4.1.1
     video_player: ^2.4.7
+    visibility_detector: ^0.3.3
 dev_dependencies:
     flutter_test:
         sdk: flutter
