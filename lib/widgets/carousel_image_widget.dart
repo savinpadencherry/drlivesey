@@ -22,7 +22,10 @@ class CarouselWidgetImage extends StatefulWidget {
 class _CarouselWidgetImageState extends State<CarouselWidgetImage>
     with TickerProviderStateMixin, LogMixin {
   VideoPlayerController? _videoPlayerController;
+  late AnimationController _controller;
+  late Animation<Offset> _size;
   bool _showTextAnimation = false;
+  bool _shownAnimationOnceWhen100 = false;
   @override
   void initState() {
     if (widget.mediaModel!.type == "video") {
@@ -33,7 +36,39 @@ class _CarouselWidgetImageState extends State<CarouselWidgetImage>
             });
       _videoPlayerController!.play();
       _videoPlayerController!.setLooping(true);
+      _controller = AnimationController(
+        vsync: this,
+        duration: const Duration(seconds: 1),
+      );
+      _size = Tween<Offset>(
+        begin: const Offset(0.0, 3.0),
+        end: const Offset(0.0, 0.0),
+      ).animate(
+          CurvedAnimation(parent: _controller, curve: Curves.fastOutSlowIn))
+        ..addListener(() {
+          setState(() {});
+        });
+      _size.addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          warningLog('$status');
+          _controller.reset();
+        }
+      });
     }
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    );
+    _size = Tween<Offset>(
+      begin: const Offset(0.0, 3.0),
+      end: const Offset(0.0, 0.0),
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.fastOutSlowIn))
+      ..addListener(() {
+        setState(() {});
+      });
+    _size.addStatusListener((status) {
+      warningLog('$status');
+    });
     super.initState();
   }
 
@@ -41,6 +76,7 @@ class _CarouselWidgetImageState extends State<CarouselWidgetImage>
   void dispose() {
     _videoPlayerController?.pause();
     _videoPlayerController!.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -63,27 +99,32 @@ class _CarouselWidgetImageState extends State<CarouselWidgetImage>
       key: Key(getRandomString(5)),
       onVisibilityChanged: (info) {
         var visiblePercentage = info.visibleFraction * 100;
-        infoLog('$visiblePercentage');
+
         if (visiblePercentage < 100) {
-          //_controller.reset();
+          _controller.reverse();
           setState(() {
             _showTextAnimation = false;
+            _shownAnimationOnceWhen100 = false;
           });
           infoLog('$_showTextAnimation');
           if (_videoPlayerController != null ||
               widget.mediaModel!.type == 'image') {
             _videoPlayerController?.pause();
+            _controller.reverse();
           }
         } else if (_videoPlayerController != null ||
             widget.mediaModel!.type == 'video') {
           _videoPlayerController?.play();
+          _controller.forward();
           setState(() {
             _showTextAnimation = true;
           });
           warningLog('$visiblePercentage');
         } else if (visiblePercentage == 100) {
+          _shownAnimationOnceWhen100 == true ? null : _controller.forward();
           setState(() {
             _showTextAnimation = true;
+            _shownAnimationOnceWhen100 = true;
           });
           infoLog('$_showTextAnimation');
         }
@@ -120,13 +161,16 @@ class _CarouselWidgetImageState extends State<CarouselWidgetImage>
               const SizedBox(
                 height: 20,
               ),
-              AnimatedOpacity(
-                duration: const Duration(seconds: 2),
-                opacity: _showTextAnimation ? 1 : 0,
-                curve: Curves.easeInCubic,
-                child: Text(
-                  widget.mediaModel!.title,
-                  style: const TextStyle(color: Colors.black, fontSize: 20),
+              SlideTransition(
+                position: _size,
+                child: AnimatedOpacity(
+                  duration: const Duration(seconds: 5),
+                  opacity: _showTextAnimation ? 1 : 0.5,
+                  curve: Curves.easeIn,
+                  child: Text(
+                    widget.mediaModel!.title,
+                    style: const TextStyle(color: Colors.black, fontSize: 20),
+                  ),
                 ),
               )
             ],
